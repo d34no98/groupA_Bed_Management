@@ -1,0 +1,69 @@
+Submission guidelines
+The submission deadline is on Friday 12th December 2025 (Week 10) at 16:00. Unapproved late submissions will be penalised, as per the university regulations.
+Each group is expected to prepare and submit the following files: 
+A PDF copy of the report (suggested name: GROUPNAME_report.pdf, e.g., FANTASTIC_SIX_report.pdf).
+Relevant source code. A folder containing the files of the source code could be included in a ZIP file (suggested name: GROUPNAME_source.zip, e.g., FANTASTIC_SIX_source.zip). Alternatively, the source code could be appended to the end of the report.
+A video (max. 3 minutes, in MP4 format) that demonstrates sections of the developed code (suggested name: GROUPNAME_video.mp4, e.g., FANTASTIC_SIX_video.mp4).
+The sum of the file sizes should be smaller than 500 MB.
+Formatting of Report
+It is recommended to use the ACM SIG Proceedings format (Word or Latex). The report needs to be a maximum of 8 pages of A4 paper excluding references if the 10pt font size is used. Please do not use smaller font sizes. If you opt for the 12pt font size, the report should not be longer than 12 pages of A4 excluding references. You can use either double-column or single-column format. Only PDF format will be accepted.
+Any reports longer than 6 pages/10pt or 8 pages/12pt will have 10 marks deducted. Furthermore, any content beyond the page limit will not be read or marked. Source code can be included in an Appendix but figures or additional results in Appendices are not allowed and will not be read.
+Make sure that any special symbols or formulas are rendered correctly in the PDF.
+The report must include a cover sheet (will not count toward the page limit) that includes:
+Student names 
+Library card numbers 
+Group name 
+Project name 
+Company involved 
+Overview of work carried out by each group member, including the contribution of each member in %. If you cannnot agree on % for each member, then leave this section blank; in that case, each member of the group should send me an email explaining what the contribution of each member was and express it as a percentage (in your opinion, including yourselves). Read the "Marking Scheme" guidelines below for more details. 
+There is no need for an abstract or repeating the title on the first page after the cover sheet. Use your space wisely. 
+Structure of Report
+Note that the following is a suggested document skeleton. You are free to adapt to your own requirements.
+
+1. Introduction
+Description of the project, its context, and the motivation for tackling it
+Research question(s) examined and the objectives of the project
+Overview of the project's methodology and findings
+ 
+2. Methodology
+What research strategy you adopted?
+How did you collect your data and integrate it together (if needed)?
+Data pre-processing procedures applied (e.g. transformations, standardisation)
+How did you analyse the data: i.e., what data mining techniques were used? What statistical techniques were used?
+ 
+3. Results
+Explain your results and what your analysis revealed
+What implications would your analysis' results have? How do your findings relate to the original question(s)?
+Were there potential biases in your work?
+Defence of validity (construct, external, etc.)
+ 
+4. Conclusions
+Reflection on the approach taken (was it appropriate?)
+How would you have improved the approach in the future? (alternative methodologies, models, etc.)
+Source Code
+You are expected to supplement your report with source code that was used to process and analyse the project data. If multiple source files are submitted, please include a text file that explains the functionality of each source file. If you choose to present the source code in an Appendix of the report, add text that explains the functionality of each source file in the Appendix. The purpose of this is to demonstrate your data cycle from raw input data to the outcomes discussed in the report.
+
+Make sure your code is well commented and is executable. If you wish (and you are familiar with this technique), you can use a jupyter notebook.
+
+Record an MP4 video (not longer than 3 minutes) that explains which sections of the source code were used to process the data, including data cleaning and data integration, and obtain key results that have been included in the report, e.g., figures or tables comparing methods. When many methods are compared, your video could focus on the implementation of one of those methods. The video should clearly show that sections of the code can be executed and produce the results presented in the report.
+
+Marking Scheme (50 marks)
+Description of project and background [5 marks]
+Research Question(s) and objectives: clear and measurable [5 marks]
+Research strategy and methods [5 marks]
+Data collection, pre-processing, and integration methods [5 marks]
+Presentation and interpretation of results [5 marks]
+Relation of results and findings to original research question(s) and objectives [7 marks]
+Examining validity issues and potential biases [7 marks]
+Reflections on the approach, and suggested improvements [5 marks]
+Inclusion of comments in source files that clearly explain the source code [3 marks]
+Video demonstrating the execution of sections of the source code [3 marks]
+All group members will get the same mark for the report unless:
+
+The group agrees on a weighting of marks based on the efforts of the group members. This should be clearly noted on the cover page. For example, if all members of a group contributed equally, the weight for each member of that group should be set to 100%. Otherwise, if a member underperformed or overperformed, the weight should be set below or above 100%, respectively, e.g., 80% and 120%. The sum of the weights of the members of a group divided by the size of the group should be equal to 100%.
+Any of the other group members objects; or 
+The module convenor(s) have a good reason to award or deduct marks from one or more group members due to exceptional circumstances, which may or may not be known to the other group members.
+Unless there is a reason to differentiate the marks within a group, all group members will get the same feedback.
+
+Examples of Reports
+Two examples of good reports have been made available below. Information that would reveal the identity of students or the weighting of marks for individual group members has been redacted.
