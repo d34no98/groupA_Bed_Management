@@ -23,6 +23,17 @@ char_columns <-
 numeric_columns <- 
   names(bed_data_drop_na)[sapply(bed_data_drop_na, is.numeric)]
 
+## Investigate all Comorbidities against patient stay
+comorbid_columns <- 
+  names(bed_data_drop_na)[sapply(names(bed_data_drop_na), 
+                                 function(x) endsWith(x, "_flag") & startsWith(x, "comorbidity_"))]
+
+## Investigate all Chronic conditions against patient stay
+chronic_columns <- 
+  names(bed_data_drop_na)[sapply(names(bed_data_drop_na), 
+                                 function(x) endsWith(x, "_flag") & startsWith(x, "chronic_"))]
+
+
 
 ## Derive length of stay using admission and discharge dates
 library(lubridate)
@@ -51,7 +62,7 @@ outliers <- bed_data_derive_dates %>%
 ## variable to label as outlier or not
 bed_data_derive_outlier <- bed_data_derive_dates %>% 
   mutate(outlier_cat = if_else(
-    duration_of_stay >= 7, 1, 0
+    duration_of_stay > 7, 1, 0
   ))
 table(bed_data_derive_outlier$outlier_cat)
 
