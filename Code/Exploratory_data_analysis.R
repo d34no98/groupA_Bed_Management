@@ -44,7 +44,7 @@ bed_data_derive_dates <- bed_data %>%
          Date_of_discharge = as.Date(discharge_obj),
          duration_of_stay = (Date_of_discharge - Date_of_admission) + 1) %>% 
   select(-admission_obj, -discharge_obj)
-  ## Extend to derive hours separately also
+## Extend to derive hours separately also
 
 ## Produce a quantile break down to associate the best data to
 ## recognise for outliers
@@ -137,6 +137,47 @@ ggplot(data=outliers, aes(x=specialty_spec_desc, y=duration_of_stay)) +
   geom_boxplot() +
   coord_flip()
 
+## Breakdown of the average days for each attendance type and Speciality
+outliers %>% 
+  group_by(attendancetype, specialty_spec_desc) %>% 
+  summarize(counts_per_type = n(),
+            total_days_per_type = sum(duration_of_stay),
+            avg_days_per_record_per_type = total_days_per_type/counts_per_type) %>% 
+  arrange(desc(avg_days_per_record_per_type)) %>% 
+  filter(!is.na(attendancetype))
+
+## Complete the same analysis, but for Specialty alone
+outliers %>% 
+  group_by(specialty_spec_desc) %>% 
+  summarize(counts_per_type = n(),
+            total_days_per_type = sum(duration_of_stay),
+            avg_days_per_record_per_type = total_days_per_type/counts_per_type) %>% 
+  arrange(desc(avg_days_per_record_per_type)) %>% 
+  filter(!is.na(specialty_spec_desc))
+
+## Deep dive Analysis, with Specialty and hrg group
+outliers %>% 
+  group_by(specialty_spec_desc, hrg_group) %>% 
+  summarize(counts_per_type = n(),
+            total_days_per_type = sum(duration_of_stay),
+            avg_days_per_record_per_type = total_days_per_type/counts_per_type) %>% 
+  arrange(desc(avg_days_per_record_per_type)) %>% 
+  filter(!is.na(specialty_spec_desc) & counts_per_type >= 30)
+
+## Last Analysis, hrg_group only
+## Deep dive Analysis, with Specialty and hrg group
+outliers %>% 
+  group_by(hrg_group) %>% 
+  summarize(counts_per_type = n(),
+            total_days_per_type = sum(duration_of_stay),
+            avg_days_per_record_per_type = total_days_per_type/counts_per_type) %>% 
+  arrange(desc(avg_days_per_record_per_type))
+
+## Boxplot of the hrg_group breakdown
+ggplot(data=outliers, aes(x=hrg_group, y=duration_of_stay)) +
+  geom_boxplot() +
+  coord_flip()
+
 ## Make `General Medicine` the reference for this variable
 library(forcats)
 bed_data_derive_spec <- bed_data_derive_sex %>% 
@@ -162,9 +203,34 @@ ggplot(data=outliers, aes(x=specialty_division, y=duration_of_stay)) +
   geom_boxplot()
 
 ## Ethnicity
+
+## Full dataset
+ggplot(data=bed_data_derive_spec, aes(x=ethnic_origin_description, y = duration_of_stay)) +
+  geom_boxplot() +
+  coord_flip()
+
+## Outliers only
 ggplot(data=outliers, aes(x=ethnic_origin_description, y = duration_of_stay)) +
   geom_boxplot() +
   coord_flip()
+
+## Lets investigate ethnicity counts more closely
+bed_data_derive_spec %>% 
+  group_by(ethnic_origin_description) %>% 
+  summarize(ethnic_counts = n()) %>% 
+  arrange(desc(ethnic_counts))
+
+## Explore the counts more closely for outliers
+outliers %>% 
+  group_by(ethnic_origin_description) %>% 
+  summarize(ethnic_counts = n()) %>% 
+  arrange(desc(ethnic_counts))
+
+
+### Results: With outliers, the ethnic counts are quite low
+### , therefore it may be difficult to make such inferences.
+### perhaps more general groupings would be beneficial for
+### better insights, but must ensure documentation
 
 ## Readmission
 ggplot(data=outliers, aes(x=as.factor(readmission_flag_28_days), y = duration_of_stay)) +
@@ -173,4 +239,34 @@ ggplot(data=outliers, aes(x=as.factor(readmission_flag_28_days), y = duration_of
 ggplot(data=outliers, aes(x=as.factor(readmission_flag_28_days_emergancy), y = duration_of_stay)) +
   geom_boxplot()
 
+## Investigate COVID-19 diagnosis
+unique(bed_data_derive_spec$covid19_diagnosis_description)
+unique(bed_data_derive_spec$covid19_diagnosis_flag)
+bed_data_derive_spec %>% 
+  distinct(covid19_diagnosis_flag, covid19_diagnosis_description)
 
+## Re-Derive COVID-19 to assess in a boxplot
+bed_data_derive_cov19 <- bed_data_derive_spec %>% 
+  mutate(dev_covid19_desc = if_else(!is.na(covid19_diagnosis_flag),
+                                    "COVID-19 Associated", "COVID-19 Not Associated"))
+
+## Explore COVID-19 across the full dataset
+ggplot(data = bed_data_derive_cov19, aes(x=dev_covid19_desc, y=duration_of_stay)) +
+  geom_boxplot()
+
+## Now explore for Outliers only
+ggplot(data = bed_data_derive_cov19 %>% filter(outlier_cat == 1),
+       aes(x=dev_covid19_desc, y=duration_of_stay)) +
+  geom_boxplot()
+
+### Results: Although there is a significant difference for duration_of_stay for COVID-19
+### patients, but this is not the case when we only observe our designated outliers
+
+## Explore delayed_discharge_no_of_days, to see if this is having an impact on 
+## discharging patients as early as possible
+
+ggplot(data=bed_data_derive_cov19, aes(x=delayed_discharges_no_of_days, y=duration_of_stay)) +
+  geom_point()
+
+## Delayed discharge information is not really captured there for we won't include this in
+## the model
