@@ -290,13 +290,13 @@ ggplot(data=outliers, aes(x=as.factor(readmission_flag_28_days_emergancy), y = d
   geom_boxplot()
 
 ## Investigate COVID-19 diagnosis
-unique(bed_data_derive_spec$covid19_diagnosis_description)
-unique(bed_data_derive_spec$covid19_diagnosis_flag)
-bed_data_derive_spec %>% 
+unique(bed_data_derive_ethnic$covid19_diagnosis_description)
+unique(bed_data_derive_ethnic$covid19_diagnosis_flag)
+bed_data_derive_ethnic %>% 
   distinct(covid19_diagnosis_flag, covid19_diagnosis_description)
 
 ## Re-Derive COVID-19 to assess in a boxplot
-bed_data_derive_cov19 <- bed_data_derive_spec %>% 
+bed_data_derive_cov19 <- bed_data_derive_ethnic %>% 
   mutate(dev_covid19_desc = if_else(!is.na(covid19_diagnosis_flag),
                                     "COVID-19 Associated", "COVID-19 Not Associated"))
 
