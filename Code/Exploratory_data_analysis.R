@@ -55,14 +55,14 @@ print(quintile_summary)
 ## Lets set the outlier criteria to where `duration_of_stay`
 ## is greater than or equal to (>) 7 days
 outliers <- bed_data_derive_dates %>% 
-  filter(duration_of_stay > 7)
+  filter(duration_of_stay >= 7)
 
 ## create data separately to have all observations,
 ## but create a categorical variable for a binary
 ## variable to label as outlier or not
 bed_data_derive_outlier <- bed_data_derive_dates %>% 
   mutate(outlier_cat = if_else(
-    duration_of_stay > 7, 1, 0
+    duration_of_stay >= 7, 1, 0
   ))
 
 table(bed_data_derive_outlier$outlier_cat)
