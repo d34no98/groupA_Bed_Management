@@ -53,7 +53,7 @@ quintile_summary <- quantile(bed_data_derive_dates$duration_of_stay, probs = seq
 print(quintile_summary)
 
 ## Lets set the outlier criteria to where `duration_of_stay`
-## is greater than or equal to (>=) 7 days
+## is greater than or equal to (>) 7 days
 outliers <- bed_data_derive_dates %>% 
   filter(duration_of_stay > 7)
 
@@ -64,6 +64,7 @@ bed_data_derive_outlier <- bed_data_derive_dates %>%
   mutate(outlier_cat = if_else(
     duration_of_stay > 7, 1, 0
   ))
+
 table(bed_data_derive_outlier$outlier_cat)
 
 ## Look in to frailty score
@@ -225,6 +226,55 @@ outliers %>%
   group_by(ethnic_origin_description) %>% 
   summarize(ethnic_counts = n()) %>% 
   arrange(desc(ethnic_counts))
+
+## Lets group ethnicity categories together
+bed_data_derive_ethnic <- bed_data_derive_spec%>%
+  mutate(dev_ethnic_group = case_when(
+    bed_data_derive_spec$ethnic_origin_description %in% c(
+      "British (White)", "Irish (White)", 
+      "Any other White Background"
+    ) ~ "White",
+    
+    ethnic_origin_description %in% c(
+      "Black African", "Black Caribbean", "Any other Black Background"
+    ) ~ "Black",
+    
+    ethnic_origin_description %in% c(
+      "Indian", "Pakistani", "Bangladeshi", 
+      "Chinese", "Any other Asian background"
+    ) ~ "Asian",
+    
+    ethnic_origin_description %in% c(
+      "White and Asian",
+      "White and Black African",
+      "White and Black Caribbean",
+      "Any other mixed background"
+    ) ~ "Mixed",
+    
+    ethnic_origin_description %in% c(
+      "Any other ethnic group"
+    ) ~ "Other",
+    
+    ethnic_origin_description %in% c(
+      "Not Stated",
+      "NOT KNOWN",
+      "DW Generated"
+    ) ~ "Not known",
+  ))
+
+## View the new counts from our derived ethnic categories
+table(bed_data_derive_ethnic$dev_ethnic_group)
+
+## Full dataset
+ggplot(data=bed_data_derive_ethnic, aes(x=dev_ethnic_group, y = duration_of_stay)) +
+  geom_boxplot() +
+  coord_flip()
+
+## Outliers only
+ggplot(data=bed_data_derive_ethnic %>% filter(outlier_cat == 1),
+       aes(x=dev_ethnic_group, y = duration_of_stay)) +
+  geom_boxplot() +
+  coord_flip()
 
 
 ### Results: With outliers, the ethnic counts are quite low
