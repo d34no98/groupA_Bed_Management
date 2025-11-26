@@ -88,12 +88,11 @@ library(lme4)
 ## log_model_1 : Predict Likelihood of an Outlier Length of Stay (LoS)
 ##               for age only, accounting for random effects on `ID`
 
-log_model_1 <- glmer(
+log_model_1 <- glmmTMB(
   data=bed_data_cleaned ,
-  formula = outlier_cat ~  patient_age_on_admission + (1 | ID),
-  family = binomial,
-  control = glmerControl(optCtrl = list(maxfun=1000))
-)
+  formula = outlier_cat ~  
+    patient_age_on_admission + (1 |ID),
+  family = binomial(link="logit"))
 
 # log_model_1_a <- glm(
 #   data=bed_data_cleaned,
@@ -105,22 +104,20 @@ summary(log_model_1)
 ## log_model_2 : Predict Likelihood of an Outlier Length of Stay (LoS)
 ##               for sex only, accounting for random effects on `ID`
 
-log_model_2 <- glmer(
+log_model_2 <- glmmTMB(
   data=bed_data_cleaned,
   formula = outlier_cat ~  dev_sex + (1 | ID),
-  family = binomial,
-  control = glmerControl(optCtrl = list(maxfun = 1000)))
+  family = binomial(link="logit"))
 
 summary(log_model_2)
 
 ## log_model_3 : Predict Likelihood of an Outlier Length of Stay (LoS)
 ##               for CFS only, accounting for random effects on `ID`
 
-log_model_3 <- glmer(
+log_model_3 <- glmmTMB(
   data=bed_data_cleaned,
   formula = outlier_cat ~  dev_frailty_score + (1 | ID),
-  family = binomial,
-  control = glmerControl(optCtrl = list(maxfun = 1000)))
+  family = binomial(link="logit"))
 
 summary(log_model_3)
 
@@ -128,12 +125,11 @@ summary(log_model_3)
 ##               for Admission within 28 days, accounting for
 ##               random effects on `ID`
 
-log_model_4 <- glmer(
+log_model_4 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~ readmission_flag_28_days  + (1 | ID),
-  family = binomial,
-  control = glmerControl(optCtrl = list(maxfun = 1000)))
-
+  formula = outlier_cat ~ 
+    readmission_flag_28_days  + (1 | ID),
+  family = binomial(link="logit"))
 
 summary(log_model_4)
 
@@ -144,10 +140,7 @@ summary(log_model_4)
 log_model_5 <- glmer(
   data=bed_data_cleaned,
   formula = outlier_cat ~ specialty_spec_desc + (1 | ID),
-  family = binomial,
-  control = glmerControl(optimizer = "bobyqa", list(maxfun=1000)),
-  verbose=TRUE)
-
+  family = binomial(link="logit"))
 
 summary(log_model_5)
 ```
