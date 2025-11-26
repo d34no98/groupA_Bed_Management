@@ -1,0 +1,250 @@
+---
+title: "models for Analysis"
+author: "37062411"
+format: html
+editor: visual
+---
+
+# Introduction
+
+We first look to execute our data file `Exploratory_data_analysis.R` file in order to retrieve our Dataset, pre-processed and cleaned, prior to using for Regression modelling.
+
+```{r, echo = FALSE, include=FALSE}
+getpath <- getwd()
+source(paste0(getpath, "/Exploratory_data_analysis.R"))
+```
+
+# Testing Assumptions of Regression
+After execution we must check that our data meets the assumptions required for applying regression successfully:
+
+-   That the correct **Link** function is applied.
+-   Independence of observations: Ensure each observation is completely independent of each other.
+
+# Choosing our Regression Models
+
+## Assess suitability of Outcome/Predictors
+First lets look at the variables of interest.
+
+```{r}
+## Lets convert our `duration_of_stay` variable to numeric prior
+## to assessing our outcomes of interest variables
+bed_data_cleaned <- bed_data_derive_cov19 %>% 
+  mutate(duration_of_stay = as.numeric(duration_of_stay))
+table(bed_data_derive_cov19$outlier_cat) # Our binary outcome variable
+ggplot(bed_data_cleaned, aes(x=as.factor(outlier_cat))) +
+  geom_bar()
+
+## Result: a Logistic Regression would be the best course of action for
+##         for predicting Length of Stay (LoS) when comparing Outlier
+##         patients against Non-Outlier Patients
+
+summary(bed_data_cleaned$duration_of_stay) # Our Count variable
+hist(bed_data_cleaned$duration_of_stay,
+     main = "Histogram for Duration of Stay (Days)",
+     xlab = "Length of Stay (LoS)")
+
+## Result: Given the Count data is present, lets assess whether a
+##         Poisson, or a Negative Binomial Regression model is needed
+##         by assessing if the counts are over-dispersed. We'll compare
+##         the Mean and Variance to assess for Overdispersion.
+
+mean(bed_data_cleaned$duration_of_stay) # Mean of `duration_of_stay`
+var(bed_data_cleaned$duration_of_stay) # Variance of `duration_of_stay`
+
+### Result: Given the Variance is significantly higher than our Mean,
+###         we can conclude that there is Overdispersion present in the
+###         data, and that a Negative Binomial Regression model would
+###         be the most appropriate model for predicting LoS.
+
+```
+
+## Justification for Mixed-Models Approach
+From our dataset however we need to ensure that the observations are indeed independent. Our dataset has an `ID` variable to recognise which records belong to which subject. Lets assess the counts per Subject ID:
+
+```{r}
+## Counts per unique Patient ID in the NHS bed management dataset,
+## but only show the first 50 observations in the console
+head(table(bed_data_cleaned$ID), 50)
+```
+From assessing our counts, some Patient ID' have more than 1 record associated with them, whilst others just have a single record. This indicates that we indeed don't have independence of observations. When we look to control fixed-effects (variables of interest, predictors etc.), and random effects (Patient-specific variation), we want to include random intercepts for each level of `ID` within our dataset. Therefore, integrating mixed-models for both our logistic, and Negative Binomial Regression models through the use of applying random intercepts for each level of `ID`.
+
+Based on frequency of inclusion and prior research from the meta-analysis and Systemic Review the variables of interest were:
+**Age, Sex, Clinical Frailty Scores, Ethnicity Category, Re-admissions Within 28 days,** and **Specialty Descriptions**.
+
+# Logistic mixed-model Regression
+
+## Univariate Models
+
+First let's assess the univariate models for each predictor prior to placing all within a single model, taking in to account the random effects of patient-specific variability. Account for this by incorporating a random effect `(1|ID)` in to our model.
+
+```{r}
+
+## Install the packages needed for mixed-effects modelling
+# install.packages("glmmTMB") ### NOTE: for Mixed-effect Negative Binom
+# install.packages("lme4")    ### NOTE: for mixed-effects logistic
+library(glmmTMB)
+library(lme4)
+
+## log_model_1 : Predict Likelihood of an Outlier Length of Stay (LoS)
+##               for age only, accounting for random effects on `ID`
+
+log_model_1 <- glmer(
+  data=bed_data_cleaned ,
+  formula = outlier_cat ~  patient_age_on_admission + (1 | ID),
+  family = binomial,
+  control = glmerControl(optCtrl = list(maxfun=1000))
+)
+
+# log_model_1_a <- glm(
+#   data=bed_data_cleaned,
+#   formula = outlier_cat ~ patient_age_on_admission,
+#   family = binomial(link = "logit"))
+
+summary(log_model_1)
+
+## log_model_2 : Predict Likelihood of an Outlier Length of Stay (LoS)
+##               for sex only, accounting for random effects on `ID`
+
+log_model_2 <- glmer(
+  data=bed_data_cleaned,
+  formula = outlier_cat ~  dev_sex + (1 | ID),
+  family = binomial,
+  control = glmerControl(optCtrl = list(maxfun = 1000)))
+
+summary(log_model_2)
+
+## log_model_3 : Predict Likelihood of an Outlier Length of Stay (LoS)
+##               for CFS only, accounting for random effects on `ID`
+
+log_model_3 <- glmer(
+  data=bed_data_cleaned,
+  formula = outlier_cat ~  dev_frailty_score + (1 | ID),
+  family = binomial,
+  control = glmerControl(optCtrl = list(maxfun = 1000)))
+
+summary(log_model_3)
+
+## log_model_4 : Predict Likelihood of an Outlier Length of Stay (LoS)
+##               for Admission within 28 days, accounting for
+##               random effects on `ID`
+
+log_model_4 <- glmer(
+  data=bed_data_cleaned,
+  formula = outlier_cat ~ readmission_flag_28_days  + (1 | ID),
+  family = binomial,
+  control = glmerControl(optCtrl = list(maxfun = 1000)))
+
+
+summary(log_model_4)
+
+## log_model_5 : Predict Likelihood of an Outlier Length of Stay (LoS)
+##               for Speciality Descriptions, accounting for
+##               random effects on `ID`
+
+log_model_5 <- glmer(
+  data=bed_data_cleaned,
+  formula = outlier_cat ~ specialty_spec_desc + (1 | ID),
+  family = binomial,
+  control = glmerControl(optimizer = "bobyqa", list(maxfun=1000)),
+  verbose=TRUE)
+
+
+summary(log_model_5)
+```
+
+## Negaive-Binomial Mixed-Effects Model
+
+```{r}
+
+## Install the packages needed for mixed-effects modelling
+# install.packages("glmmTMB") ### NOTE: for Mixed-effect Negative Binom
+# install.packages("lme4")    ### NOTE: for mixed-effects logistic
+library(glmmTMB)
+library(lme4)
+
+## nbinom_model_1 : Predict Likelihood of an Outlier 
+##                  Length of Stay (LoS) for age only, accounting for
+##                  random effects on `ID`
+
+library(glmmTMB)
+
+nbinom_model_1 <- glmmTMB(
+  duration_of_stay ~ patient_age_on_admission + (1 | ID),
+  data = bed_data_cleaned,
+  family = nbinom2  # or nbinom1
+)
+
+summary(nbinom_model_1)
+
+## nbinom_model_2 : Predict the Duration of Stay (Number of Days) 
+##                  for sex only accounting for random effects on `ID`
+
+nbinom_model_2 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~  dev_sex + (1 | ID),
+  family = nbinom2)
+
+summary(nbinom_model_2)
+
+## nbinom_model_3 : Predict the Duration of Stay (Number of Days)
+##                  for CFS only, accounting for random effects on `ID`
+
+nbinom_model_3 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~  dev_frailty_score + (1 | ID),
+  family = nbinom2)
+
+summary(nbinom_model_3)
+
+## nbinom_model_4 : Predict Duration of stay (Number of Days)
+##                  for Admission within 28 days, accounting for
+##                  random effects on `ID`
+
+nbinom_model_4 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ readmission_flag_28_days  + (1 | ID),
+  family = nbinom2)
+
+
+summary(nbinom_model_4)
+
+## log_model_5 : Predict Duration of stay (Number of Days)
+##               for Speciality Descriptions, accounting for
+##               random effects on `ID`
+
+nbinom_model_5 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ specialty_spec_desc + (1 | ID),
+  family = nbinom2)
+
+
+summary(nbinom_model_5)
+
+nbinom_model_6 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ dev_ethnic_group  + (1 | ID),
+  family = nbinom2)
+
+summary(nbinom_model_6)
+
+nbinom_model_7 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ patient_age_on_admission + dev_sex + dev_ethnic_group +
+    dev_frailty_score + readmission_flag_28_days + 
+    specialty_spec_desc+ (1 | ID),
+  family = nbinom2)
+
+summary(nbinom_model_7)
+
+compare_models = function( model1, model2 ) { 
+  dev1 = sum(residuals(model1, "deviance")^2) 
+  dev2 = sum(residuals(model2, "deviance")^2) 
+  paste("p =", pchisq(dev1-dev2,df=1,lower.tail=FALSE)) 
+} 
+
+compare_models(nbinom_model_1, nbinom_model_4)
+```
+
+## Quarto
+
+Quarto enables you to weave together content and executable code into a finished document. To learn more about Quarto see <https://quarto.org>.
