@@ -4,7 +4,8 @@ library(dplyr)
 library(readr)
 library(stringr)
 library(ggplot2)
-bed_data <- read_csv("./Code/WWL_data.csv")
+
+bed_data <- read_csv( "./WWL_data.csv") # Modify path
 
 summary(bed_data)
 
@@ -75,16 +76,20 @@ ggplot(data=outliers, aes(x=frailty_score, y=duration_of_stay)) +
 ### use `mutate to bring these categories together`
 library(stringr)
 bed_data_frailty_grouped <- bed_data_derive_outlier %>% 
-  mutate(dev_frailty_score = case_when(str_detect(frailty_score, "10") ~ "NQ",
-                                       str_detect(frailty_score, "1") ~ "1 - Very Fit",
-                                       str_detect(frailty_score, "2") ~ "2 - Well",
-                                       str_detect(frailty_score, "3") ~ "3 - Managing Well",
-                                       str_detect(frailty_score, "4") ~ "4 - Vulnerable",
-                                       str_detect(frailty_score, "5") ~ "5 - Mildly Frail",
-                                       str_detect(frailty_score, "6") ~ "6 - Moderately Frail",
-                                       str_detect(frailty_score, "7") ~ "7 - Severely Frail",
-                                       str_detect(frailty_score, "8") ~ "8 - Very Severely Frail",
-                                       str_detect(frailty_score, "9") ~ "9 - Terminally Ill"))
+  mutate(dev_frailty_score = as.factor(case_when(str_detect(frailty_score, "10") ~ "NQ",
+                                                str_detect(frailty_score, "1") ~ "1 - Very Fit",
+                                                str_detect(frailty_score, "2") ~ "2 - Well",
+                                                str_detect(frailty_score, "3") ~ "3 - Managing Well",
+                                                str_detect(frailty_score, "4") ~ "4 - Vulnerable",
+                                                str_detect(frailty_score, "5") ~ "5 - Mildly Frail",
+                                                str_detect(frailty_score, "6") ~ "6 - Moderately Frail",
+                                                str_detect(frailty_score, "7") ~ "7 - Severely Frail",
+                                                str_detect(frailty_score, "8") ~ "8 - Very Severely Frail",
+                                                str_detect(frailty_score, "9") ~ "9 - Terminally Ill")
+                                    ),
+         ## relevel ref category for `Frailty Score`
+         dev_frailty_score = relevel(dev_frailty_score, "1 - Very Fit")
+  )
 table(bed_data_frailty_grouped$dev_frailty_score)
 
 ## Look for associations closely in the comorbidity scores
@@ -228,8 +233,8 @@ outliers %>%
   arrange(desc(ethnic_counts))
 
 ## Lets group ethnicity categories together
-bed_data_derive_ethnic <- bed_data_derive_spec%>%
-  mutate(dev_ethnic_group = case_when(
+bed_data_derive_ethnic <- bed_data_derive_spec %>%
+  mutate(dev_ethnic_group = as.factor(case_when(
     bed_data_derive_spec$ethnic_origin_description %in% c(
       "British (White)", "Irish (White)", 
       "Any other White Background"
@@ -259,8 +264,9 @@ bed_data_derive_ethnic <- bed_data_derive_spec%>%
       "Not Stated",
       "NOT KNOWN",
       "DW Generated"
-    ) ~ "Not known",
-  ))
+    ) ~ "Not known"
+  )),
+  dev_ethnic_group = relevel(dev_ethnic_group, ref="White"))
 
 ## View the new counts from our derived ethnic categories
 table(bed_data_derive_ethnic$dev_ethnic_group)
