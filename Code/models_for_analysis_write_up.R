@@ -2,7 +2,7 @@ library(glmmTMB)
 log_model_1 <- glmmTMB(
   data=bed_data_cleaned ,
   formula = outlier_cat ~  
-    patient_age_on_admission + (1 | ID) + (1 | site_description),
+    patient_age_on_admission + (1 | ID) + (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 # log_model_1_a <- glm(
@@ -17,7 +17,7 @@ summary(log_model_1)
 
 log_model_2 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~  dev_sex + (1 | ID) + (1 | site_description),
+  formula = outlier_cat ~  dev_sex + (1 | ID) + (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_2)
@@ -27,7 +27,7 @@ summary(log_model_2)
 
 log_model_3 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~  dev_frailty_score + (1 | ID) + (1 | site_description),
+  formula = outlier_cat ~  dev_frailty_score + (1 | ID) + (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_3)
@@ -39,7 +39,7 @@ summary(log_model_3)
 log_model_4 <- glmmTMB(
   data=bed_data_cleaned,
   formula = outlier_cat ~ 
-    readmission_flag_28_days  + (1 | ID) + (1 | site_description),
+    readmission_flag_28_days  + (1 | ID) + (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_4)
@@ -50,10 +50,15 @@ summary(log_model_4)
 
 log_model_5 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~ specialty_spec_desc + (1 | ID) + (1 | site_description),
+  formula = outlier_cat ~ specialty_spec_desc + (1 | ID) + (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_5)
+
+## We may need to drop `specialty_spec_desc` due to very few outliers existing in some 
+## Categories, adding complexity without deriving inferences clearly
+table(bed_data_cleaned$specialty_spec_desc, bed_data_cleaned$outlier_cat)
+### Results: 0 outliers for a lot of categories, drop `specialty_spec_desc`
 
 log_model_6 <- glmmTMB(
   data=bed_data_cleaned,
