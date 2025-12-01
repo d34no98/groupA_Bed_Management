@@ -77,7 +77,7 @@ Based on frequency of inclusion and prior research from the meta-analysis and Sy
 
 First let's assess the univariate models for each predictor prior to placing all within a single model, taking in to account the random effects of patient-specific variability. Account for this by incorporating a random effect `(1|ID)` in to our model.
 
-```{r}
+```{r, include=FALSE}
 
 ## Install the packages needed for mixed-effects modelling
 # install.packages("glmmTMB") ### NOTE: for Mixed-effect Negative Binom
@@ -137,7 +137,7 @@ summary(log_model_4)
 ##               for Speciality Descriptions, accounting for
 ##               random effects on `ID`
 
-log_model_5 <- glmer(
+log_model_5 <- glmmTMB(
   data=bed_data_cleaned,
   formula = outlier_cat ~ specialty_spec_desc + (1 | ID),
   family = binomial(link="logit"))
