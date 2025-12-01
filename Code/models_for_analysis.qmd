@@ -31,6 +31,9 @@ First lets look at the variables of interest.
 bed_data_cleaned <- bed_data_derive_cov19 %>% 
   mutate(duration_of_stay = as.numeric(duration_of_stay))
 table(bed_data_derive_cov19$outlier_cat) # Our binary outcome variable
+
+## Write bed_data_cleaned to a .csv file
+readr::write_csv(bed_data_cleaned, "bed_data_final.csv")
 ggplot(bed_data_cleaned, aes(x=as.factor(outlier_cat))) +
   geom_bar()
 
