@@ -1,0 +1,99 @@
+#load final dataset
+bed_data_cleaned <- readr::read_csv("bed_data_final.csv")
+
+#load packages
+
+library(glmmTMB)
+
+#prep final model (from Ollie's code)
+log_model_7 <- glmmTMB(
+  data = bed_data_cleaned,
+  formula = outlier_cat ~ patient_age_on_admission + dev_sex +
+    dev_ethnic_group +  dev_frailty_score + readmission_flag_28_days + 
+    (1 | ID) + (1 | ward_name_admission),
+  family = binomial(link="logit")
+)
+summary(log_model_7)
+
+#Test accuracy of the model
+## Generate predictions based on model
+pred = predict(
+  log_model_7,
+  newdata=bed_data_cleaned,
+  type="response"
+)
+bed_data_cleaned$prediction = round(pred)
+
+## Test how good the predictions are
+# true positives
+TP <- length(
+  which(bed_data_cleaned$outlier_cat==1 &
+          bed_data_cleaned$prediction==1))
+
+# true negatives
+TN <- length(
+  which(bed_data_cleaned$outlier_cat==0 & 
+          bed_data_cleaned$prediction==0))  
+
+# false positives
+FP <- length(
+  which(bed_data_cleaned$outlier_cat==0 &
+          bed_data_cleaned$prediction==1))
+
+# false negatives
+FN <- length(
+  which(bed_data_cleaned$outlier_cat==1 & 
+          bed_data_cleaned$prediction==0))
+
+# Proportion of patients with correctly predicted outcome
+(TP+TN)/(TP+TN+FP+FN) #93.1%
+
+# Sensitivity
+TP/(TP+FN) #0.48
+
+# Specificity
+TN/(TN+FP) #0.98
+
+## how does this compare with other models?
+#eg a standard, non-mixed, logistic regression
+
+## make standard model
+log_model_standard <- glmmTMB(
+  data = bed_data_cleaned,
+  formula = outlier_cat ~ patient_age_on_admission + dev_sex +
+    dev_ethnic_group +  dev_frailty_score + readmission_flag_28_days,
+  family = binomial(link="logit")
+)
+summary(log_model_standard)
+
+## make predictions based on model
+pred2 = predict(
+  log_model_standard,
+  newdata=bed_data_cleaned,
+  type="response"
+)
+bed_data_cleaned$standard_prediction = round(pred2)
+
+## Test how good the predictions are
+# true positives
+sTP <- length(
+  which(bed_data_cleaned$outlier_cat==1 &
+          bed_data_cleaned$standard_prediction==1))
+# true negatives
+sTN <- length(
+  which(bed_data_cleaned$outlier_cat==0 & 
+          bed_data_cleaned$standard_prediction==0))  
+# false positives
+sFP <- length(
+  which(bed_data_cleaned$outlier_cat==0 &
+          bed_data_cleaned$standard_prediction==1))
+# false negatives
+sFN <- length(
+  which(bed_data_cleaned$outlier_cat==1 & 
+          bed_data_cleaned$standard_prediction==0))
+# Proportion of patients with correctly predicted outcome
+(sTP+sTN)/(sTP+sTN+sFP+sFN) #90.1
+# Sensitivity
+sTP/(sTP+sFN) #0
+# Specificity
+sTN/(sTN+sFP) #1
