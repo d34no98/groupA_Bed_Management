@@ -108,3 +108,99 @@ summary_table %>%
 
 ### Complete results for the Negative Binomial Regression
 
+nbinom_model_1 <- glmmTMB(
+  duration_of_stay ~ patient_age_on_admission + (1 | ID) + (1 | ward_name_admission),
+  data = bed_data_cleaned,
+  family = nbinom2  # or nbinom1
+)
+
+summary(nbinom_model_1)
+
+## nbinom_model_2 : Predict the Duration of Stay (Number of Days) 
+##                  for sex only accounting for random effects on `ID`
+
+nbinom_model_2 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~  dev_sex + (1 | ID) + (1 | ward_name_admission),
+  family = nbinom2)
+
+summary(nbinom_model_2)
+
+## nbinom_model_3 : Predict the Duration of Stay (Number of Days)
+##                  for CFS only, accounting for random effects on `ID`
+
+nbinom_model_3 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~  dev_frailty_score + (1 | ID) + (1 | ward_name_admission),
+  family = nbinom2)
+
+summary(nbinom_model_3)
+
+## nbinom_model_4 : Predict Duration of stay (Number of Days)
+##                  for Admission within 28 days, accounting for
+##                  random effects on `ID`
+
+nbinom_model_4 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ readmission_flag_28_days  + (1 | ID)
+  + (1 | ward_name_admission),
+  family = nbinom2)
+
+
+summary(nbinom_model_4)
+
+## log_model_5 : Predict Duration of stay (Number of Days)
+##               for Speciality Descriptions, accounting for
+##               random effects on `ID`
+
+nbinom_model_5 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ specialty_spec_desc + (1 | ID)
+  + (1 | ward_name_admission),
+  family = nbinom2)
+
+
+summary(nbinom_model_5)
+
+nbinom_model_6 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ dev_ethnic_group  + (1 | ID)
+  + (1 | ward_name_admission),
+  family = nbinom2)
+
+summary(nbinom_model_6)
+
+nbinom_model_7 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ patient_age_on_admission + dev_sex + 
+    dev_ethnic_group + dev_frailty_score + readmission_flag_28_days + 
+    specialty_spec_desc + (1 | ID) + (1 | ward_name_admission),
+  family = nbinom2)
+
+summary(nbinom_model_7)
+
+## Write the model in a FlexTable format
+nbinom_model_summary <- tbl_regression(
+  nbinom_model_7,
+  label = list(patient_age_on_admission ~ "Age (Years) on Admission",
+               dev_sex ~ "Gender",
+               dev_ethnic_group ~ "Ethnicity",
+               dev_frailty_score ~ "Clinical Frailty Score (CFS)",
+               readmission_flag_28_days ~ "Patient Readmissioned?",
+               specialty_spec_desc ~ "Clinical Specialty"),
+  exponentiate = FALSE,
+  intercept = TRUE,
+  estimate_fun = function(x) style_number(x, digits = 3),
+  pvalue_fun = label_style_pvalue(digits=3)) %>% 
+  bold_labels()
+
+## Export the final Negative Binomial Model
+library(flextable)
+library(officer)
+
+nbinom_model_summary %>% 
+  as_flex_table() %>%  ## Convert to a FlexTable to modify 
+  ## file to save table as
+  ### Save Results as a Word File
+  save_as_docx(
+    path = "final_NB_regression_model_results.docx")

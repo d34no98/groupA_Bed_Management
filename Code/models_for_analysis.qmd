@@ -91,7 +91,8 @@ library(lme4)
 log_model_1 <- glmmTMB(
   data=bed_data_cleaned ,
   formula = outlier_cat ~  
-    patient_age_on_admission + (1 |ID),
+    patient_age_on_admission + (1 | ID) + 
+    (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 # log_model_1_a <- glm(
@@ -106,7 +107,8 @@ summary(log_model_1)
 
 log_model_2 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~  dev_sex + (1 | ID),
+  formula = outlier_cat ~  dev_sex + (1 | ID) + 
+    (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_2)
@@ -116,7 +118,8 @@ summary(log_model_2)
 
 log_model_3 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~  dev_frailty_score + (1 | ID),
+  formula = outlier_cat ~  dev_frailty_score + (1 | ID) + 
+    (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_3)
@@ -128,7 +131,8 @@ summary(log_model_3)
 log_model_4 <- glmmTMB(
   data=bed_data_cleaned,
   formula = outlier_cat ~ 
-    readmission_flag_28_days  + (1 | ID),
+    readmission_flag_28_days  + (1 | ID) + 
+    (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_4)
@@ -139,7 +143,8 @@ summary(log_model_4)
 
 log_model_5 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = outlier_cat ~ specialty_spec_desc + (1 | ID),
+  formula = outlier_cat ~ specialty_spec_desc + (1 | ID) + 
+    (1 | ward_name_admission),
   family = binomial(link="logit"))
 
 summary(log_model_5)
@@ -162,7 +167,8 @@ library(lme4)
 library(glmmTMB)
 
 nbinom_model_1 <- glmmTMB(
-  duration_of_stay ~ patient_age_on_admission + (1 | ID),
+  duration_of_stay ~ patient_age_on_admission + (1 | ID) + 
+    (1 | ward_name_admission),
   data = bed_data_cleaned,
   family = nbinom2  # or nbinom1
 )
@@ -174,7 +180,8 @@ summary(nbinom_model_1)
 
 nbinom_model_2 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = duration_of_stay ~  dev_sex + (1 | ID),
+  formula = duration_of_stay ~  dev_sex + (1 | ID) + 
+    (1 | ward_name_admission),
   family = nbinom2)
 
 summary(nbinom_model_2)
@@ -184,7 +191,7 @@ summary(nbinom_model_2)
 
 nbinom_model_3 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = duration_of_stay ~  dev_frailty_score + (1 | ID),
+  formula = duration_of_stay ~  dev_frailty_score + (1 | ID) + (1 | ward_name_admission),
   family = nbinom2)
 
 summary(nbinom_model_3)
@@ -195,7 +202,8 @@ summary(nbinom_model_3)
 
 nbinom_model_4 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = duration_of_stay ~ readmission_flag_28_days  + (1 | ID),
+  formula = duration_of_stay ~ readmission_flag_28_days  + 
+    (1 | ID) + (1 | ward_name_admission),
   family = nbinom2)
 
 
@@ -207,7 +215,7 @@ summary(nbinom_model_4)
 
 nbinom_model_5 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = duration_of_stay ~ specialty_spec_desc + (1 | ID),
+  formula = duration_of_stay ~ specialty_spec_desc + (1 | ID) + (1 | ward_name_admission),
   family = nbinom2)
 
 
@@ -215,7 +223,8 @@ summary(nbinom_model_5)
 
 nbinom_model_6 <- glmmTMB(
   data=bed_data_cleaned,
-  formula = duration_of_stay ~ dev_ethnic_group  + (1 | ID),
+  formula = duration_of_stay ~ dev_ethnic_group  + (1 | ID) + 
+    (1 | ward_name_admission),
   family = nbinom2)
 
 summary(nbinom_model_6)
@@ -224,7 +233,7 @@ nbinom_model_7 <- glmmTMB(
   data=bed_data_cleaned,
   formula = duration_of_stay ~ patient_age_on_admission + dev_sex + dev_ethnic_group +
     dev_frailty_score + readmission_flag_28_days + 
-    specialty_spec_desc+ (1 | ID),
+    specialty_spec_desc+ (1 | ID) + (1 | ward_name_admission),
   family = nbinom2)
 
 summary(nbinom_model_7)
@@ -235,7 +244,7 @@ compare_models = function( model1, model2 ) {
   paste("p =", pchisq(dev1-dev2,df=1,lower.tail=FALSE)) 
 } 
 
-compare_models(nbinom_model_1, nbinom_model_4)
+compare_models(nbinom_model_1, nbinom_model_7)
 ```
 
 ## Quarto
