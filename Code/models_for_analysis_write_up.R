@@ -83,7 +83,16 @@ install.packages("broom.helpers")
 library(gtsummary)
 library(broom.helpers)
 
-summary_table <- tbl_regression(
+## Calculate the R-Squared stats prior to producing the table
+library(performance)
+library(glue)
+r2_log_vals <- performance::r2(log_model_7)
+
+#install.packages("parameters")
+library(parameters)
+
+## Fixed Effects Table
+log_model_summary <- tbl_regression(
   log_model_7,
   label = list(patient_age_on_admission ~ "Age (Years) on Admission",
                dev_sex ~ "Gender",
@@ -94,6 +103,14 @@ summary_table <- tbl_regression(
   intercept = TRUE,
   estimate_fun = function(x) style_number(x, digits = 3),
   pvalue_fun = label_style_pvalue(digits=3)) %>% 
+  bold_p(t=0.05) %>% 
+  add_glance_source_note() %>%
+  modify_table_styling(
+    columns = label,
+    footnote = glue::glue(
+      "Model fit: Marginal R² = {round(r2_log_vals$R2_marginal, 3)}, Conditional R² = {round(r2_log_vals$R2_conditional, 3)}"
+    )
+  ) %>% 
   bold_labels()
 
 ## Export the final model
@@ -102,7 +119,7 @@ library(officer)
 
 setwd("./Output") ## Send Tables to the specific Folder path
 
-summary_table %>% 
+log_model_summary %>% 
   as_flex_table() %>%  ## Convert to a FlexTable to modify 
                        ## file to save table as
   ### Save Results as a Word File
@@ -184,7 +201,14 @@ nbinom_model_7 <- glmmTMB(
 
 summary(nbinom_model_7)
 
+## Calculate the R-Squared stats prior to producing the table
+library(performance)
+library(glue)
+r2_nbinom_vals <- performance::r2(nbinom_model_7)
+
 ## Write the model in a FlexTable format
+#install.packages("parameters")
+library(parameters)
 nbinom_model_summary <- tbl_regression(
   nbinom_model_7,
   label = list(patient_age_on_admission ~ "Age (Years) on Admission",
@@ -197,7 +221,17 @@ nbinom_model_summary <- tbl_regression(
   intercept = TRUE,
   estimate_fun = function(x) style_number(x, digits = 3),
   pvalue_fun = label_style_pvalue(digits=3)) %>% 
+#  add_global_p() %>% 
+  bold_p(t=0.05) %>% 
+  add_glance_source_note() %>%
+  modify_table_styling(
+    columns = label,
+    footnote = glue::glue(
+      "Model fit: Marginal R² = {round(r2_nbinom_vals$R2_marginal, 3)}, Conditional R² = {round(r2_nbinom_vals$R2_conditional, 3)}"
+    )
+  ) %>% 
   bold_labels()
+  
 
 ## Export the final Negative Binomial Model
 library(flextable)
@@ -209,3 +243,4 @@ nbinom_model_summary %>%
   ### Save Results as a Word File
   save_as_docx(
     path = "final_NB_regression_model_results.docx")
+
