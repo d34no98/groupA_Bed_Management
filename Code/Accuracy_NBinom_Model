@@ -1,0 +1,12 @@
+#predict values based on neg binomial model
+bed_data_cleaned$predicted <- predict(
+  nbinom_model_7,
+  type = "response")
+
+#plot the observed vs predicted values
+library(ggplot2)
+ggplot(bed_data_cleaned, aes(x = duration_of_stay, y = predicted)) +
+  geom_point(alpha = 0.6) +
+  labs(title="Observed vs Predicted Values (Negative Binomial Model)",
+x="Observed",
+y="Predicted")
