@@ -171,6 +171,7 @@ nbinom_model_3 <- glmmTMB(
 
 summary(nbinom_model_3)
 
+
 ## nbinom_model_4 : Predict Duration of stay (Number of Days)
 ##                  for Admission within 28 days, accounting for
 ##                  random effects on `ID`
@@ -184,7 +185,7 @@ nbinom_model_4 <- glmmTMB(
 
 summary(nbinom_model_4)
 
-## log_model_5 : Predict Duration of stay (Number of Days)
+## nbinom_model_5 : Predict Duration of stay (Number of Days)
 ##               for Speciality Descriptions, accounting for
 ##               random effects on `ID`
 
@@ -256,3 +257,4 @@ nbinom_model_summary %>%
   ### Save Results as a Word File
   save_as_docx(
     path = "final_NB_regression_model_results.docx")
+
