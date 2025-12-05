@@ -61,22 +61,6 @@ bed_data <- bed_data %>%
     ) ~ "Not known",
   ))
 
-# ** Ollie's code to clean NAs **
-## Find some NA columns and exclude them from the dataset
-na_columns <- names(which(colSums(is.na(bed_data)) > 0))
-all_na_columns <- c()
-
-## Drop unnecesaary columns with all NAs as the values
-bed_data_drop_na <- bed_data %>% 
-  select(-all_na_columns)
-
-## Store all character and numeric variables separately
-library(stringr)
-char_columns <- 
-  names(bed_data_drop_na)[sapply(bed_data_drop_na, is.character)]
-numeric_columns <- 
-  names(bed_data_drop_na)[sapply(bed_data_drop_na, is.numeric)]
-
 ## Derive length of stay using admission and discharge dates
 library(lubridate)
 bed_data_derive_dates <- bed_data %>% 
@@ -101,21 +85,42 @@ bed_data_derive_outlier <- bed_data_derive_dates %>%
   ))
 table(bed_data_derive_outlier$outlier_cat)
 
-# ** Zoe's code to count n spells and Create table 1
 ##add outlier category to main data frame
 bed_data$outlier_cat <- bed_data_derive_outlier$outlier_cat
 
 ##Make outlier a factor with meaningful labels
 bed_data$outlier_cat <- factor(bed_data$outlier_cat,
                                levels=c(1,0),
-                               labels = c("Short stay <7 days",
-                               "Long stay >= 7 days"))
+                               labels = c("Long stay, equal or greater than 7 days",
+                               "Short stay, less than 7 days"))
 
 ## Label our sex, age and ethnicity variables
+library(Hmisc)
 label(bed_data$sex_national_code) <- "Sex"
 label(bed_data$patient_age_on_admission) <- "Age"
 label(bed_data$ethnic_group) <- "Ethnicity"
 
+##recode frailty score
+table(bed_data$frailty_score)
+library(stringr)
+bed_data_frailty_grouped <- bed_data_derive_outlier %>% 
+  mutate(dev_frailty_score = as.factor(case_when(str_detect(frailty_score, "10") ~ "NQ",
+                                                 str_detect(frailty_score, "1") ~ "1 - Very Fit",
+                                                 str_detect(frailty_score, "2") ~ "2 - Well",
+                                                 str_detect(frailty_score, "3") ~ "3 - Managing Well",
+                                                 str_detect(frailty_score, "4") ~ "4 - Vulnerable",
+                                                 str_detect(frailty_score, "5") ~ "5 - Mildly Frail",
+                                                 str_detect(frailty_score, "6") ~ "6 - Moderately Frail",
+                                                 str_detect(frailty_score, "7") ~ "7 - Severely Frail",
+                                                 str_detect(frailty_score, "8") ~ "8 - Very Severely Frail",
+                                                 str_detect(frailty_score, "9") ~ "9 - Terminally Ill")
+),
+         ## relevel ref category for `Frailty Score`
+dev_frailty_score = relevel(dev_frailty_score, "1 - Very Fit")
+)
+table(bed_data_frailty_grouped$dev_frailty_score)
+bed_data$dev_frailty_score <- bed_data_frailty_grouped$dev_frailty_score
+    
 ## check if there's patients with multiple spells in hospital
 sum(duplicated(bed_data$ID))
 add_count(bed_data, ID, sort = FALSE, name= "Number_spells")
@@ -124,21 +129,37 @@ add_count(bed_data, ID, sort = FALSE, name= "Number_spells")
 ###Group the data + Add spell count per patient
 bed_data_demos <- group_by(bed_data, ID)
 bed_data_spellcount <- mutate(bed_data_demos, spell_count = n())
+## Label data for table
+label(bed_data_spellcount$spell_count) <- "N Admissions"
 
 #create a dataframe just with the first visits & ungroup
 bed_data_visit1 <- slice(bed_data_spellcount, 1)
 bed_data_visit1 <- ungroup(bed_data_visit1)
+label(bed_data_visit1$specialty_spec_desc) <- "Specialty"
 
-# Table 1 for each patient (not each visit!)
-
-library(table1) #<- load handy table1 package
-
+# Table 1 for demographics of all patients
+library(table1) 
 table1(~ sex_national_code + patient_age_on_admission + ethnic_group #demographics
        + spell_count #variables of interest
-       | outlier_cat,
        data=bed_data_visit1)
-
 #total n of patients is 30379
 
+#another table to describe variables in analysis, for all *admissions*
+#(not per patients)
+bed_data <- dplyr::filter(bed_data, sex_national_code != "Indeterminate")
+bed_data$sex_national_code <- factor(bed_data$sex_national_code,
+                                     levels=c("Male", "Female"))
+label(bed_data$sex_national_code) <- "Sex"
 
+bed_data$readmission_flag_28_days<- factor(
+  bed_data$readmission_flag_28_days,
+  levels=c(1,0),
+  labels=c("Yes","No")
+)
+label(bed_data$dev_frailty_score) <- "Frailty Score"
+label(bed_data$readmission_flag_28_days) <- "Readmission from past 28 days"
 
+table1(~ sex_national_code + patient_age_on_admission + ethnic_group
+       + dev_frailty_score + readmission_flag_28_days
+       | outlier_cat,
+       data=bed_data)
