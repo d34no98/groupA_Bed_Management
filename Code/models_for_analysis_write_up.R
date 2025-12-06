@@ -1,4 +1,17 @@
 library(glmmTMB)
+library(readr)
+bed_data_cleaned <- readr::read_csv("./Code/bed_data_final.csv")
+## Re-Factor all predictors
+bed_data_cleaned$dev_sex <- relevel(as.factor(bed_data_cleaned$dev_sex), ref="Female")
+bed_data_cleaned$dev_frailty_score <- 
+  relevel(as.factor(bed_data_cleaned$dev_frailty_score), ref="1 - Very Fit")
+bed_data_cleaned$specialty_spec_desc <-
+  relevel(as.factor(bed_data_cleaned$specialty_spec_desc),
+          ref = "General Medicine")
+bed_data_cleaned$dev_ethnic_group <-
+  relevel(as.factor(bed_data_cleaned$dev_ethnic_group),
+          ref = "White")
+
 log_model_1 <- glmmTMB(
   data=bed_data_cleaned ,
   formula = outlier_cat ~  
@@ -158,6 +171,7 @@ nbinom_model_3 <- glmmTMB(
 
 summary(nbinom_model_3)
 
+
 ## nbinom_model_4 : Predict Duration of stay (Number of Days)
 ##                  for Admission within 28 days, accounting for
 ##                  random effects on `ID`
@@ -171,7 +185,7 @@ nbinom_model_4 <- glmmTMB(
 
 summary(nbinom_model_4)
 
-## log_model_5 : Predict Duration of stay (Number of Days)
+## nbinom_model_5 : Predict Duration of stay (Number of Days)
 ##               for Speciality Descriptions, accounting for
 ##               random effects on `ID`
 
@@ -217,7 +231,7 @@ nbinom_model_summary <- tbl_regression(
                dev_frailty_score ~ "Clinical Frailty Score (CFS)",
                readmission_flag_28_days ~ "Patient Readmissioned?",
                specialty_spec_desc ~ "Clinical Specialty"),
-  exponentiate = FALSE,
+  exponentiate = TRUE,
   intercept = TRUE,
   estimate_fun = function(x) style_number(x, digits = 3),
   pvalue_fun = label_style_pvalue(digits=3)) %>% 
