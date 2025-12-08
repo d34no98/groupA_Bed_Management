@@ -118,13 +118,14 @@ log_model_summary <- tbl_regression(
   pvalue_fun = label_style_pvalue(digits=3)) %>% 
   bold_p(t=0.05) %>% 
   add_glance_source_note() %>%
+ # add_global_p() %>% 
   modify_table_styling(
     columns = label,
     footnote = glue::glue(
       "Model fit: Marginal R² = {round(r2_log_vals$R2_marginal, 3)}, Conditional R² = {round(r2_log_vals$R2_conditional, 3)}"
     )
   ) %>% 
-  bold_labels()
+  bold_labels() 
 
 ## Export the final model
 library(flextable)
@@ -235,7 +236,7 @@ nbinom_model_summary <- tbl_regression(
   intercept = TRUE,
   estimate_fun = function(x) style_number(x, digits = 3),
   pvalue_fun = label_style_pvalue(digits=3)) %>% 
-#  add_global_p() %>% 
+ # add_global_p() %>% 
   bold_p(t=0.05) %>% 
   add_glance_source_note() %>%
   modify_table_styling(
