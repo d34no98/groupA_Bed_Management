@@ -1,12 +1,36 @@
-#predict values based on neg binomial model
+# Observed vs Predicted Plot for Negative Binomial Results
+
+## Load data
+bed_data_cleaned <- readr::read_csv("bed_data_final.csv")
+
+## Ensure the missing data is removed
+bed_data_cleaned <- dplyr::filter(
+  bed_data_cleaned, sex_national_code != 9)
+bed_data$sex_national_code <- factor(bed_data$sex_national_code,
+                                     levels=c("Male", "Female"))
+
+## Create nbinom model
+nbinom_model_7 <- glmmTMB(
+  data=bed_data_cleaned,
+  formula = duration_of_stay ~ patient_age_on_admission + dev_sex + 
+    dev_ethnic_group + dev_frailty_score + readmission_flag_28_days + 
+    specialty_spec_desc + (1 | ID) + (1 | ward_name_admission),
+  family = nbinom2)
+summary(nbinom_model_7)
+
+## Predict values based on neg binomial model
 bed_data_cleaned$predicted <- predict(
   nbinom_model_7,
   type = "response")
 
-#plot the observed vs predicted values
+## Plot the observed vs predicted values
 library(ggplot2)
 ggplot(bed_data_cleaned, aes(x = duration_of_stay, y = predicted)) +
-  geom_point(alpha = 0.6) +
-  labs(title="Observed vs Predicted Values (Negative Binomial Model)",
-x="Observed",
-y="Predicted")
+  geom_point(alpha = 0.2) + #set transparent points
+  labs(title="Observed vs Predicted Length of Stay (Negative Binomial Model)",
+       x="Observed",
+       y="Predicted",
+       color=NULL) +
+  coord_equal(xlim = c(0, 130), ylim = c(0, 130)) + #set each axis the same
+  geom_abline(aes(color="Perfect Accuracy", intercept=0, slope=1)) +
+  scale_color_manual(values = "red")
